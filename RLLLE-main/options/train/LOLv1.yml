@@ -1,0 +1,91 @@
+#### general settings
+name: LOLv1_model
+use_tb_logger: true
+model: video_base4_m
+distortion: sr
+scale: 1
+gpu_ids: [0]
+
+#### datasets
+datasets:
+  train:
+    name: indoor
+    mode: video_samesize_lol
+    interval_list: [1]
+    random_reverse: false
+    border_mode: false
+    dataroot_GT: /home/lab312/xie/SNR-v2/dataset/trainB-500
+    dataroot_LQ: /home/lab312/xie/SNR-v2/dataset/trainA
+    dataroot_MASK: /home/lab312/xie/SNR-v2/dataset/trainC
+    dataroot_DAY: /home/lab312/xie/SNR-v2/dataset/trainD-500
+    train_size: [600, 400]
+    cache_keys: ~
+    cache_data: true
+    padding: new_info
+
+    N_frames: 5     # how many frames as a input.
+    use_shuffle: true
+    n_workers: 0  # per GPU
+    batch_size: 8
+    GT_size: 128     # size you want to crop out as input sample.
+    LQ_size: 128
+    MASK_size: 128
+    use_flip: false
+    use_rot: false
+    color: RGB
+  val:
+    name: REDS4
+    mode: video_samesize_lol
+    dataroot_GT: /home/lab312/xie/SNR-v2/dataset/val-nu/testB
+    dataroot_LQ: /home/lab312/xie/SNR-v2/dataset/val-nu/testA
+    dataroot_MASK: /home/lab312/xie/SNR-v2/dataset/val-nu/testC
+    dataroot_DAY: /home/lab312/xie/SNR-v2/dataset/val-nu/testD
+#    dataroot_GT: /home/lab312/下载/LOLdataset_40627/lol_test/testB
+#    dataroot_LQ: /home/lab312/下载/LOLdataset_40627/lol_test/testA
+#    dataroot_MASK: /home/lab312/下载/LOLdataset_40627/lol_test/testC
+#    dataroot_DAY: /home/lab312/下载/LOLdataset_40627/lol_test/testD
+    cache_data: true
+    N_frames: 5
+    padding: new_info
+    train_size: [600, 400]
+
+#### network structures
+network_G:
+  which_model_G: low_light_transformer
+  nf: 64
+  nframes: 5      # must be same as N_frames in dataset.
+  groups: 8
+  front_RBs: 1
+  back_RBs: 1
+  predeblur: true     # default false
+  HR_in: true       # true if size(input) == size(HR)
+  w_TSA: true
+
+#### path
+path:
+  root: ./
+  strict_load: false
+
+#### training settings: learning rate scheme, loss
+train:
+  lr_G: !!float 2e-4
+  lr_scheme: MultiStepLR
+  beta1: 0.9
+  beta2: 0.99
+  niter: 600000
+  ft_tsa_only: 0
+  warmup_iter: -1  # -1: no warm up
+  lr_steps: [50000, 100000, 200000, 300000]
+  lr_gamma: 0.5
+  eta_min: !!float 1e-7
+
+  pixel_criterion: cb
+  pixel_weight: 1.0
+  val_freq: !!float 500
+
+  manual.resize960x512_seed: 0
+
+#### logger
+logger:
+  print_freq: 100
+  save_checkpoint_freq: !!float 20000

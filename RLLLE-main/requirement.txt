@@ -1,0 +1,5 @@
+torch1.4
+torchvision
+visdom
+dominate
+opencv-python
